@@ -37,7 +37,7 @@ export default function Login() {
         setLoading(true);
         setTimeout(() => {
           setLoading(false);
-          navigate("/home");
+          navigate("/employee");
         }, 1200);
       } else {
         console.log(res);
@@ -131,11 +131,11 @@ export default function Login() {
                 </button>
               </div>
             </div>
-            <div className="right w-[400px] h-auto rounded">
+            <div className="hidden md:block right w-[400px] h-auto rounded">
               <img
                 src={backimage}
                 alt="User with laptop"
-                className="w-full h-full rounded-3xl ml-9"
+                className="w-full h-full rounded-3xl ml-9 relative"
               />
             </div>
           </div>

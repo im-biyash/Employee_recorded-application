@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import Navbar from "./Navbar";
-import { RingLoader } from "react-spinners";
-
+import logout from "../Assets/logout.png";
 import { useNavigate } from "react-router-dom";
 export default function Home() {
   const [name, setName] = useState("");
@@ -11,11 +10,14 @@ export default function Home() {
   const [date, setDate] = useState("");
   const [country, setCountry] = useState("");
   const [position, setPosition] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [wage, setWage] = useState(0);
-  const [employeelist, setEmployeelist] = useState([]);
+  const [photo, setPhoto] = useState("");
 
-  const addEmployee = () => {
+  const [wage, setWage] = useState(0);
+  const [error, setError] = useState("");
+
+  const addEmployee = async (event) => {
+    event.preventDefault();
+  
     if (
       !name ||
       !employeeid ||
@@ -23,37 +25,54 @@ export default function Home() {
       !date ||
       !country ||
       !position ||
-      !wage
+      !wage ||
+      !photo
     ) {
       alert("All fields are required");
       return;
     }
-    setLoading(true);
-    console.log("button clicked");
-    axios
-      .post("http://localhost:3001/create", {
-        name: name,
-        employeeid: employeeid,
-        email: email,
-        date: date, // Send the formatted date to the server
-        country: country,
-        position: position,
-        wage: wage,
-      })
-      .then(() => {
-        console.log("Success");
-        setTimeout(() => {
-          setLoading(false);
-        }, 5000);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-   
+  
+    // Check if the employee ID already exists
+    try {
+      const response = await axios.get(`http://localhost:3001/checkEmployeeID/${employeeid}`);
+      console.log(response.data); // Add this log
+      if (response.data.exists) {
+        alert("Employee ID already exists. Please choose a different one.");
+        return;
+      }
+    } catch (error) {
+      console.error("Error checking employee ID:", error);
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append("photo", photo);
+  
+    // Append other form data
+    formData.append("name", name);
+    formData.append("employeeid", employeeid);
+    formData.append("email", email);
+    formData.append("date", date);
+    formData.append("country", country);
+    formData.append("position", position);
+    formData.append("wage", wage);
+  
+    try {
+      await axios.post("http://localhost:3001/create", formData);
+  
+      // Clear all form fields
+      event.target.reset();
+  
+      console.log("Success");
+    } catch (error) {
+      console.error("Error:", error.response.data.error);
+      setError(error.response.data.error);
+      return;
+    }
   };
-
-
-
+  
+  
+  
   const navigate = useNavigate();
   const logoutHandler = () => {
     navigate("/");
@@ -61,18 +80,15 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <div className="bg-[#0a192f]">
+      <div className="bg-[#0a192f] min-h-screen">
         <div className="p-1 max-w-md mx-auto">
-        <h1 className="text-2xl font-bold text-red-600 ml-6">
+          <h1 className="text-2xl font-bold text-red-600 ml-6">
             Employee Information
           </h1>
-          {loading && (
-            // Display ring loader only when loading state is true
-            <div className="flex justify-center items-center h-screen">
-              <RingLoader color="#36d68f" size={100} speedMultiplier={1} />
-            </div>
-          )}
-          <form className=" shadow-md rounded text-white px-8 pt-6 pb-8 mb-1  opacity-1 border-zinc-100 ">
+          <form
+            className=" shadow-md rounded text-white px-8 pt-6 pb-8 mb-1  opacity-1 border-zinc-100 "
+            onSubmit={addEmployee}
+          >
             <div className="mb-2">
               <label htmlFor="name" className="block text-sm  mb-2 text-white ">
                 Name
@@ -192,15 +208,31 @@ export default function Home() {
                 }}
               />
             </div>
+            <div className="mb-2">
+              <label
+                htmlFor="Iprofile"
+                className="block text-whitetext-sm  mb-2"
+              >
+                Profile
+              </label>
+              <input
+                type="file"
+                id="image"
+                accept="image/*"
+                onChange={(e) => {
+                  setPhoto(e.target.files[0]);
+                }}
+              />
+            </div>
+            <div>{error && <p className="text-red-800"> {error}</p>}</div>
 
             <div className="mb-2">
               <button
+                type="submit"
                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold p-1 rounded focus:outline-none focus:shadow-outline"
-                onClick={addEmployee}
               >
-               
                 Save employee
-              </button>   
+              </button>
             </div>
           </form>
         </div>

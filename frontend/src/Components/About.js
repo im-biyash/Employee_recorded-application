@@ -5,7 +5,7 @@ export default function About() {
   return (
     <div className="bg-[#0a192f] min-h-screen ">
       <Navbar />
-      <div className="flex items-center justify-around relative top-[150px] ">
+      <div className="flex items-center justify-around  min-h-screen">
         <div className="left">
           <h1 className="text-red-500 text-2xl">FEATURES</h1>
           <ul className="text-white gap-2 list-disc text-lg ">
@@ -35,7 +35,7 @@ export default function About() {
           </p>
         </div>
       </div>
-      <div className="developers-info relative top-[200px] mt-8 pt-2 h-screen">
+      <div className="developers-info  mt-8 pt-2 h-screen">
         <h1 className="text-red-700 ml-9 text-2xl">Developers</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-7 mt-6 w-auto">
           <div className="p-2 rounded-lg shadow-md flex flex-col items-center transition-transform transform hover:scale-105 hover:bg-[#2e366c] ">

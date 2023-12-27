@@ -40,17 +40,25 @@ function Employeeedit() {
       .catch((error) => {
         console.error("Error updating employee", error);
       });
-      navigate("/employee");
-    };
+    navigate("/employee");
+  };
 
   return (
-    <div className="bg-[#0a192f] h-screen">
+    <div className="bg-[#0a192f] min-h-screen">
       <Navbar />
-      <h1 className="text-red-600">Edit Employee page {id}</h1>
+      {/* <h1 className="text-red-600">Edit Employee page {id}</h1> */}
       {employeeData && (
         <div className="p-2 max-w-md mx-auto bg-[#0a192f]">
-          <form className="b shadow-md rounded px-8 pt-6 pb-8 mb-8 bg-[#0a192f]">
+          <div className="">
+            <img
+              src={`http://localhost:3001/public/${employeeData.photo}`} // Assuming `photo` is the correct property name
+              alt="Employee Photo"
+              className="my-1 mx-auto rounded-full w-48 h-48 shadow-md"
+            />
+          </div>
+          <form className="b shadow-md rounded px-4 pt-2 pb-8 mb-8 bg-[#0a192f] h-auto">
             {/* ... other input fields */}
+
             <div className="mb-4">
               <label
                 htmlFor="name"
@@ -120,7 +128,7 @@ function Employeeedit() {
 
             <div className="buttons">
               <button
-                className="px-2 py-2 border-2 stroke-orange-300 rounded-2xl bg-green-600"
+                className="px-2 py-1 w-20 border-2 stroke-orange-300 rounded-2xl bg-green-600"
                 onClick={() => {
                   updateEmployee();
                 }}
@@ -134,5 +142,4 @@ function Employeeedit() {
     </div>
   );
 }
-
 export default Employeeedit;

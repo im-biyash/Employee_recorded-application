@@ -2,6 +2,7 @@ const express = require("express");
 const mysql = require("mysql"); // Import the mysql package
 const app = express();
 const cors = require("cors");
+const multer = require("multer");
 
 app.use(cors());
 app.use(express.json());
@@ -11,6 +12,17 @@ const db = mysql.createConnection({
   host: "localhost",
   database: "employeeinfo",
 });
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "public/"); // Specify the directory where uploaded files will be stored
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`); // Use a unique filename for each uploaded file (timestamp + original file.originalname); // Use the original filename for the stored file
+  },
+});
+
+const upload = multer({ storage: storage });
+
 
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
@@ -30,16 +42,30 @@ app.post("/login", (req, res) => {
   );
 });
 
-app.post("/create", (req, res) => {
-  console.log(req.body.date);
 
+
+// ... (existing code)
+
+app.post("/create", upload.single("photo"), (req, res) => {
   const { name, employeeid, email, date, country, position, wage } = req.body;
+  const photo = req.file; 
+  console.log(req.body);
+  console.log(req.file); // Retrieve the file from req.file
 
+  // Ensure that the file is provided
+  if (!photo) {
+    return res.status(400).json({ error: "No file provided" });
+  }
+  if(!["image/jpeg","image/png","image/gif"].includes(photo.mimetype)){
+    return res.status(400).json({ error: "inavlid file type" });
+  }
+  // Set the mimetype to "image/jpeg"
   const sql =
-    "INSERT INTO datas (name, employeeid, email, date, country, position, wage) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    "INSERT INTO datas (name, employeeid, email, date, country, position, wage, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
   db.query(
     sql,
-    [name, employeeid, email, date, country, position, wage],
+    [name, employeeid, email, date, country, position, wage, photo.filename],
     (err, result) => {
       if (err) {
         console.error("Error inserting data into the database: " + err.message);
@@ -47,13 +73,16 @@ app.post("/create", (req, res) => {
       } else {
         console.log(result);
         console.log("Data inserted successfully");
-        return res
-          .status(200)
-          .json({ result: "Employee created successfully." });
+        return res.status(200).json({ result: "Employee created successfully." });
       }
     }
   );
 });
+
+
+
+// Serve uploaded files statically
+app.use("/public", express.static("public"));
 
 // Assuming you have an Express app and a MySQL database connection (db) already set up
 app.get("/employees", (req, res) => {
@@ -104,6 +133,21 @@ app.get("/edit/:id", (req, res) => {
     }
   });
 });
+app.get("/checkEmployeeID/:employeeid", (req, res) => {
+  const employeeid = req.params.employeeid;
+
+  const sql = "SELECT COUNT(*) AS count FROM datas WHERE employeeid = ?";
+  
+  db.query(sql, [employeeid], (err, result) => {
+    if (err) {
+      console.error("Error checking employee ID:", err);
+      res.status(500).json({ error: "An error occurred while checking employee ID" });
+    } else {
+      const count = result[0].count;
+      res.json({ exists: count > 0 });
+    }
+  });
+});
 
 // Add a new route to handle DELETE requests
 app.delete("/delete/:employeeid", (req, res) => {
@@ -135,6 +179,7 @@ app.delete("/delete/:employeeid", (req, res) => {
     }
   });
 });
+
 
 
 app.listen(3001, () => {

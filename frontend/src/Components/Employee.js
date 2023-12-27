@@ -5,17 +5,16 @@ import Navbar from "./Navbar";
 
 export default function Employees() {
   const [employeeList, setEmployeeList] = useState([]);
-
   const [searchInput, setSearchInput] = useState("");
   const [sortingOption, setSortingOption] = useState("");
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [error, setError] = useState("");
   useEffect(() => {
     axios
       .get("http://localhost:3001/employees")
       .then((response) => {
-        console.log(response);
         setEmployeeList(response.data);
-        
       })
       .catch((error) => {
         console.error("Error in Axios request:", error);
@@ -53,11 +52,9 @@ export default function Employees() {
         if (response.data.error) {
           console.error("Error deleting employee: " + response.data.error);
         } else {
-          console.log(employeeList);
           var newList = employeeList.filter(
             (employee) => employee.employeeid !== employeeid
           );
-          console.log(newList);
           setEmployeeList(newList);
         }
       })
@@ -66,21 +63,27 @@ export default function Employees() {
       });
   };
 
+  const viewEmployee = (employee) => {
+    setSelectedEmployee(employee);
+    console.log(employee);
+    setIsModalOpen(true);
+  };
+
   const printEmployeeList = () => {
     window.print();
   };
+  const printIndividualRecord = () => {
+    window.print();
+  };
   const handleSortingChange = (event) => {
-    // Update the selected sorting option when the dropdown value changes
     setSortingOption(event.target.value);
-
-    // Sort the employeeList based on the new sorting option
     sortEmployeeList();
   };
 
   useEffect(() => {
-    // Call sortEmployeeList whenever sortingOption changes
     sortEmployeeList();
   }, [sortingOption]);
+
   return (
     <div className="bg-[#0a192f] min-h-screen">
       <Navbar />
@@ -180,12 +183,17 @@ export default function Employees() {
                     >
                       Edit
                     </Link>
-
                     <button
                       className="rounded px-4 py-1 bg-red-600 hover:bg-red-800"
                       onClick={() => deleteEmployee(val.employeeid)}
                     >
                       Delete
+                    </button>
+                    <button
+                      className="rounded px-4 py-1 bg-green-600 hover:bg-red-800"
+                      onClick={() => viewEmployee(val)}
+                    >
+                      View
                     </button>
                   </div>
                 </td>
@@ -194,6 +202,65 @@ export default function Employees() {
           </tbody>
         </table>
       </div>
+
+      {isModalOpen && selectedEmployee && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
+    <div className="bg-s p-4 rounded-lg w-1/2 h-[500px] flex  items-center bg-[#0a192f] gap-28">
+      <div>
+        <img
+          src={`http://localhost:3001/public/${selectedEmployee.photo}`}
+          alt={selectedEmployee.name}
+          className="w-[250px] h-[250px] rounded-3xl"
+        />
+      </div>
+      <div className="p-3 mb-9 text-white font-serif text-left w-[50%]">
+        <div className="flex mb-3 p-1 border-b border-gray-500">
+          <label className="mr-2 font-bold p-1">Name:</label>
+          <p className="bg-gray-500 rounded ml-4 p-1">{selectedEmployee.name}</p>
+        </div>
+        <div className="flex mb-3 p-1 border-b border-gray-500">
+          <label className="mr-2 font-bold">Email:</label>
+          <p>{selectedEmployee.email}</p>
+        </div>
+        <div className="flex mb-3 p-1 border-b border-gray-500">
+          <label className="mr-2 font-bold">Employee ID:</label>
+          <p>{selectedEmployee.employeeid}</p>
+        </div>
+        <div className="flex mb-3 p-1 border-b border-gray-500">
+          <label className="mr-2 font-bold">Hire date:</label>
+          <p>{new Date(selectedEmployee.date).toLocaleDateString()}</p>
+        </div>
+        <div className="flex mb-3 p-1 border-b border-gray-500">
+          <label className="mr-2 font-bold">Country:</label>
+          <p>{selectedEmployee.country}</p>
+        </div>
+        <div className="flex mb-3 p-1 border-b border-gray-500">
+          <label className="mr-2 font-bold">Position:</label>
+          <p className="whitespace-nowrap">{selectedEmployee.position}</p>
+        </div>
+        <div className="flex mb-3 p-1">
+          <label className="mr-2 font-bold">Wage:</label>
+          <p>{selectedEmployee.wage}</p>
+        </div>
+      </div>
+    </div>
+
+    <button
+      className="rounded px-4 py-1 bg-green-600 hover:bg-red-800 relative right-[400px] top-[200px]"
+      onClick={() => setIsModalOpen(false)}
+    >
+      Close
+    </button>
+    <button
+      className="rounded px-4 py-1 bg-green-600 hover:bg-red-800 relative right-[400px] top-[200px] ml-6"
+      onClick={printIndividualRecord}
+    >
+      Print
+    </button>
+  </div>
+)}
+
+
     </div>
   );
 }
